@@ -44,7 +44,9 @@ IRIS_USER_PWD password dell'utente IRIS_USER_ID
 
 NAME nome dell'autore dell'inserimento
 
-TEST=N (Y) Serve per testare il recupero e per attivare un log verboso
+TEST=N (Y) Serve per testare il recupero e per attivare un log verboso (default N)
+
+UPDATE=N (Y) Serve per eseguire un update al posto di un insert in db Iris (default N)
 
 
 # esempio
