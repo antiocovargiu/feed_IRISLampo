@@ -12,7 +12,7 @@ Il recupero viene gestito dal launcher che accetta in ingresso tre parametri
 ./feed_irisLampo  arg1 arg2 arg3
 ```
 
-_arg1_ minuto al quale esegue il comando
+_arg1_ minuto al quale esegue il comando (0 - 59)
 
 _arg2_ flag per recupero: *R* esegue il recupero, ogni altro carattere non esegue il recupero (es. *N*)
 
