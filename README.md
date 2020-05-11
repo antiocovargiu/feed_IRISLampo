@@ -33,6 +33,7 @@ Devono essere specificate le variabili:
 DEBUG *True* scrive tutti gli errori o gli inserimenti dei dati, *False* scrive solo le informazioni essenziali
 
 Da specificare a riga di comando o su file env: 
+
 TIPOLOGIE="ZTD ZWD GE GN" : elenco delle tipologie per cui esegue l'alimentazione/recupero
 
 MINUTES=240 minuti di ritardo rispetto all'orario di lancio per il recupero o l'alimentazione diretta (*vedi note*)
