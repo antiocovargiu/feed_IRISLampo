@@ -43,6 +43,9 @@ NAME nome dell'autore dell'inserimento
 
 # esempio
 ```
+docker run -d --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp --name "test"  --env-file env_docker.sh arpasmr/feed_iris ./launch_feedLampo.sh 15 L 60
+
+comando orig di feedIris:
 docker run -d --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp -e "IRIS_USER_ID=postgres" -e "IRIS_USER_PWD=<password>" -e "IRIS_DB_NAME=iris_base" -e "IRIS_DB_HOST=10.10.0.19" -e "TIPOLOGIE=I PP T UR N RG PA VV DV" -e "DEBUG=True" -e "MINUTES=1440" --name "recupero_all" arpasmr/feed_iris ./launch_feed.sh 8 R 3600
 ```
 # note: uso di MINUTES
