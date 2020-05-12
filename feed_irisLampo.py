@@ -203,7 +203,7 @@ conn=engine.connect()
 #preparazione dell'elenco dei sensori
 Query='Select *  from "dati_di_base"."anagraficasensori" where "anagraficasensori"."datafine" is NULL and idrete in (1,2,3,4);'
 df_sensori=pd.read_sql(Query, conn)
-
+total_rows = df_sensori.shape[0]
 
 #ALIMETAZIONE DIRETTA
 # suppongo di non avere ancora chiesto dati, vedo quale dato devo chiedere, lo chiedo e lo inserisco.
@@ -241,7 +241,11 @@ s=dt.datetime.now()
 conn=engine.connect()
 regole={}
 # inizio del ciclo vero e proprio
+idx=0
 for row in df_section.itertuples():
+    idx+=1
+    if (DEBUG):
+        print(idx,'/',total_rows) 
     # controllo quanto tempo è passato: le alimentazioni possono durare al massimo 10'
     timeDiff=dt.datetime.now()-s
     durata_script=timeDiff.total_seconds() / 60
