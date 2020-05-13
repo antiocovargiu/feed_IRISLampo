@@ -47,4 +47,4 @@ do
 done
 
 echo "Fine $0"
-sleep 5
+sleep 30
