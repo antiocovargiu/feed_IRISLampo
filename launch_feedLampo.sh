@@ -14,13 +14,17 @@ else
 fi
 
 MINSTART=$1
-echo "Start script"
+min_start_10=$[ 10#$MINSTART % 10]
+#echo "Start script"
 
 while [ 1 ]
 do
    data_corrente=$[ 10#$(date +"%M") ]
-   echo "Countdown: $data_corrente/$MINSTART"
-   #if [ $2 != "R" ]
+
+   time_10m=$[ 10#$(date +"%M") % 10 ]
+   if [ $time_10m -eq 0 ]; then echo "Countdown: $data_corrente/$MINSTART"; fi
+
+
    if [ $data_corrente == $MINSTART ] && [ $2 != "R" ]; then
       #logger -is -p user.notice "Logger: $nomescript: eseguo alimentazione al minuto $1 per $TIPOLOGIE"
       echo "Minuto: $data_corrente Eseguo alimentazione diretta per $TIPOLOGIE"
@@ -42,7 +46,6 @@ do
            fi
        fi
    fi
-   echo "Sleep"
    sleep 60 
 done
 
