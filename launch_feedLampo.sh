@@ -46,11 +46,7 @@ do
            fi
        fi
    fi
-<<<<<<< HEAD
    sleep 30 
-=======
-   sleep 60 
->>>>>>> 280d1556df9f54207bdf99ed645cf3b644d37103
 done
 
 echo "Fine $0"
