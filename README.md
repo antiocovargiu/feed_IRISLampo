@@ -36,11 +36,7 @@ Da specificare a riga di comando o su file env:
 
 TIPOLOGIE="ZTD ZWD GE GN" : elenco delle tipologie per cui esegue l'alimentazione/recupero
 
-<<<<<<< HEAD
 MINUTES=120 minuti di ritardo rispetto all'orario di lancio per il recupero o l'alimentazione diretta (*vedi note*)
-=======
-MINUTES=240 minuti di ritardo rispetto all'orario di lancio per il recupero o l'alimentazione diretta (*vedi note*)
->>>>>>> 280d1556df9f54207bdf99ed645cf3b644d37103
 
 DELTAT=125 tempo di ricerca dati rispetto a ora attuale (CED) - MINUTES
 
@@ -50,24 +46,17 @@ NAME nome dell'autore dell'inserimento
 
 TEST=N (Y) Serve per testare il recupero e per attivare un log verboso (default N)
 
-<<<<<<< HEAD
 UPDATE=N (Y) Serve per eseguire un update al posto di un insert in db Iris (default N) (Non ancora implemetato nel recupero!)
 
-#DATARECUP=202005152130 Se presente, serve per impostare una particolare data di recupero (Solo nel recupero!) 
+DATARECUP=202005152130 Se presente, serve per impostare una particolare data di recupero (Solo nel recupero!) 
 
-#LISTANERA=(10700, 10701, 10702, 10703) Se presente, lista i sensori che non si volgliono selezionare
-=======
+LISTANERA=(10700, 10701, 10702, 10703) Se presente, lista i sensori che non si volgliono selezionare
+
 UPDATE=N (Y) Serve per eseguire un update al posto di un insert in db Iris (default N)
->>>>>>> 280d1556df9f54207bdf99ed645cf3b644d37103
-
 
 # esempio
 ```
-<<<<<<< HEAD
 docker run -d --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp --name "feedIrisLampo"  --env-file env_docker.sh arpasmr/feed_iris ./launch_feedLampo.sh 15 F 3600
-=======
-docker run -d --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp --name "feedIrisLampo"  --env-file env_docker.sh arpasmr/feed_iris ./launch_feedLampo.sh 15 L 60
->>>>>>> 280d1556df9f54207bdf99ed645cf3b644d37103
 
 comando orig di feedIris:
 docker run -d --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp -e "IRIS_USER_ID=postgres" -e "IRIS_USER_PWD=<password>" -e "IRIS_DB_NAME=iris_base" -e "IRIS_DB_HOST=10.10.0.19" -e "TIPOLOGIE=I PP T UR N RG PA VV DV" -e "DEBUG=True" -e "MINUTES=1440" --name "recupero_all" arpasmr/feed_iris ./launch_feed.sh 8 R 3600
