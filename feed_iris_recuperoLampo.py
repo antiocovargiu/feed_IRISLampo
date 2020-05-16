@@ -18,6 +18,9 @@ import requests
 import logging
 # variabili di ambiente (da togliere in produzione)
 DEBUG='False'
+if os.getenv('DEBUG') is not None:
+    DEBUG=os.getenv('DEBUG')
+
 IRIS_TABLE_NAME='m_osservazioni_tr'
 IRIS_SCHEMA_NAME='realtime'
 AUTORE=os.getenv('COMPUTERNAME')
@@ -28,19 +31,48 @@ if (AUTORE==None):
     IRIS_USER_PWD=os.getenv('IRIS_USER_PWD')
     IRIS_DB_NAME=os.getenv('IRIS_DB_NAME')
     IRIS_DB_HOST=os.getenv('IRIS_DB_HOST')
-    h=os.getenv('TIPOLOGIE') # elenco delle tipologie da cercare nella tabella delle osservazioni realtime, è una stringa
-    DEBUG=os.getenv('DEBUG')
+    h=os.getenv('TIPOLOGIE') # elenco delle tipologie da cercare nella tabella delle osservazioni realtime, è una stringa   
     MINUTES=int(os.getenv('MINUTES'))
     REMWS_GATEWAY=os.getenv('REMWS_GATEWAY')
     # trasformo la stringa in lista
 
 url=REMWS_GATEWAY
 TIPOLOGIE=h.split()
+
+# formati time
+formatTimeC="%Y%m%d%H%M"
+formatTime="%Y-%m-%d %H:%M"
+formatTimeS="%Y-%m-%d %H:%M:%S"
+
+
 # inizializzazione delle date
 datafine=dt.datetime.utcnow()+dt.timedelta(hours=1)
+
+if os.getenv('DATARECUP') is not None:
+    data = os.getenv('DATARECUP')
+    datafine=dt.datetime.strptime(data,formatTimeC)
+
+
 datainizio=datafine-dt.timedelta(minutes=MINUTES)
+
+
+DEBUGV=False
 if (eval(DEBUG)):
-    logging.debug(eval(DEBUG))
+    logging.basicConfig(level=logging.DEBUG)
+    DEBUGV=True 
+else:    
+    logging.basicConfig(level=logging.INFO)
+
+
+if os.getenv('LISTANERA') is not None:
+      lista=os.getenv('LISTANERA') # elenco sensori in lista nera manuale
+      whrListaNera='AND idsensore not in ' + lista
+else:
+      whrListaNera=''
+
+if (DEBUGV):
+    print('lista sensori eliminati manualmente: ',lista) 
+
 #definizione delle funzioni
 # la funzione legge il blocco di dati e lo trasforma in DataFrame
 def seleziona_richiesta(Risposta):
@@ -105,7 +137,7 @@ engine = create_engine('postgresql+pg8000://'+IRIS_USER_ID+':'+IRIS_USER_PWD+'@'
 conn=engine.connect()
 
 #preparazione dell'elenco dei sensori
-Query='Select *  from "dati_di_base"."anagraficasensori" where "anagraficasensori"."datafine" is NULL and idrete in (1,2,3,4);'
+Query='Select *  from "dati_di_base"."anagraficasensori" where "anagraficasensori"."datafine" is NULL and idrete in (1,2,3,4) '+ whrListaNera +';'
 df_sensori=pd.read_sql(Query, conn)
 
 #query di richiesta dati già presenti nel dB
@@ -121,6 +153,12 @@ minuto=int(datainizio.minute/10)*10
 data_ricerca=dt.datetime(datainizio.year,datainizio.month,datainizio.day,datainizio.hour,minuto,0)
 data_elimina=data_ricerca - dt.timedelta(days=15)
 df_section=df_sensori[df_sensori.nometipologia.isin(TIPOLOGIE)]
+tot_rows=df_section.shape[0]
+if (DEBUGV):
+    #print('df_section',df_section)
+    print(tot_rows)
+    print(TIPOLOGIE)
+
 #ciclo sui sensori:
 # strutturo la richiesta
 id_operatore=1
@@ -130,11 +168,23 @@ frame_dati["sensor_id"]=0
 frame_dati["granularity"]=1 # chiedo solo i 10 minuti
 frame_dati["start"]=data_ricerca.strftime("%Y-%m-%d %H:%M")
 frame_dati["finish"]=data_ricerca.strftime("%Y-%m-%d %H:%M")
+
+
+logging.info('ricerca dati start: '+ frame_dati["start"])
+logging.info('ricerca dati finish: '+ datafine.strftime("%Y-%m-%d %H:%M"))
+
 #suppongo che in df_section ci siano solo i sensori che mi interessano e faccio il ciclo di richiesta
 s=dt.datetime.now()
 conn=engine.connect()
 # inizio del ciclo vero e proprio
+idx=0
 for row in df_section.itertuples():
+    idx+=1
+
+    logging.info('Processing richiesta '+ str(idx) + '/' + str(tot_rows))
+    if (eval(DEBUG)):
+        logging.debug('nometipologia:'+ row.nometipologia)
+
     #estraggo i dati dal dataframe
     element=df_dati[df_dati.idsensore==row.idsensore]
     frame_dati["sensor_id"]=row.idsensore
@@ -187,12 +237,11 @@ for row in df_section.itertuples():
             try:
                 conn.execute(QueryInsert)
                 if (eval(DEBUG)):
-                    logging.info("+++++++Query eseguita per "+str(row.idsensore)+" "+ dato_mancante.strftime("%Y-%m-%d %H:%M"))
+                    logging.debug("+++++++Query eseguita per "+str(row.idsensore)+" "+ dato_mancante.strftime("%Y-%m-%d %H:%M"))
             except:
                 if (eval(DEBUG)):
                     logging.error(QueryInsert+"non riuscita! per "+str(row.idsensore)+" "+ dato_mancante.strftime("%Y-%m-%d %H:%M"))
         else:
-            if (eval(DEBUG)):
                 logging.warning("Attenzione: dato di "+str(row.idsensore)+ " ASSENTE nel REM per "+ dato_mancante.strftime("%Y-%m-%d %H:%M"))
      # prima di chiudere il ciclo chiedo la raffica del vento
     if(row.nometipologia=='VV' or row.nometipologia=='DV'):
@@ -219,6 +268,7 @@ for row in df_section.itertuples():
             if (eval(DEBUG)):
                 logging.warning("Attenzione: dato di "+h+ " sensore "+str( row.idsensore)+ " ASSENTE nel REM")
     #fine ciclo sensore
+'''
 QueryDelete='DELETE FROM '+'"'+IRIS_SCHEMA_NAME+'"."'+IRIS_TABLE_NAME+'"' +' WHERE data_e_ora <'+"'"+data_elimina.strftime("%Y-%m-%d %H:%M")+"'"
 try:
     conn.execute(QueryDelete)
@@ -226,5 +276,7 @@ try:
         logging.info("+++pulizia dati eseguita")
 except:
     logging.error("ERR: Pulizia dati non riuscita")
+'''
 print("Recupero terminato per",TIPOLOGIE,"inizio",s,"fine", dt.datetime.now())
-logging.info("Recupero terminato per {0} inizio "+s.strftime("%Y-%m-%d %H:%M:%s")+ " fine "+ dt.datetime.now().strftime("%Y-%m-%d %H:%M:%s"),format(h))
+vstr=''
+logging.info("Recupero terminato per "+ vstr.join(TIPOLOGIE) +" inizio "+s.strftime("%Y-%m-%d %H:%M:%s")+ " fine "+ dt.datetime.now().strftime("%Y-%m-%d %H:%M:%s"))

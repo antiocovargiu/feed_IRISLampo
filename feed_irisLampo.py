@@ -72,7 +72,6 @@ SINSERT=os.getenv('INSERT')
 if SINSERT == 'n':
     INSERT=False
 
-
 TEST=os.getenv('TEST')
 if TEST == 'Y':
     #IRIS_DB_NAME='iris_devel'
@@ -85,7 +84,16 @@ SUPDATE=os.getenv('UPDATE')
 if SUPDATE == 'Y':
     INSERT=False
     UPDATE=True 
-    
+
+###### se non voglio selezionare manualmente qualche sensore, lo metto nella variabile LISTANERA 
+if os.getenv('LISTANERA') is not None:
+      lista=os.getenv('LISTANERA') # elenco sensori in lista nera manuale
+      whrListaNera='AND idsensore not in ' + lista
+else:
+      whrListaNera=''
+
+if (DEBUGV):
+    print('lista sensori eliminati manualmente: ',lista)    
 
 #############################################################################
 # init variabili temporali
@@ -201,7 +209,7 @@ engine = create_engine('postgresql+pg8000://'+IRIS_USER_ID+':'+IRIS_USER_PWD+'@'
 conn=engine.connect()
 
 #preparazione dell'elenco dei sensori
-Query='Select *  from "dati_di_base"."anagraficasensori" where "anagraficasensori"."datafine" is NULL and idrete in (1,2,3,4);'
+Query='Select *  from "dati_di_base"."anagraficasensori" where "anagraficasensori"."datafine" is NULL and idrete in (1,2,3,4) '+ whrListaNera +';'
 df_sensori=pd.read_sql(Query, conn)
 
 
@@ -224,6 +232,7 @@ ora=dt.datetime(datainizio.year,datainizio.month,datainizio.day,datainizio.hour,
 
 df_section=df_sensori[df_sensori.nometipologia.isin(TIPOLOGIE)].sample(frac=1)
 # aggiunto sort casuale per parallelizzazione
+total_rows = df_section.shape[0]
 
 #ciclo sui sensori:
 # strutturo la richiesta
@@ -241,7 +250,11 @@ s=dt.datetime.now()
 conn=engine.connect()
 regole={}
 # inizio del ciclo vero e proprio
+idx=0
 for row in df_section.itertuples():
+    idx+=1
+    if (DEBUG):
+        print(idx,'/',total_rows) 
     # controllo quanto tempo è passato: le alimentazioni possono durare al massimo 10'
     timeDiff=dt.datetime.now()-s
     durata_script=timeDiff.total_seconds() / 60
