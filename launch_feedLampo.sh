@@ -37,8 +37,9 @@ do
        if [ $2 == "R" ] ;then
            echo "Bash: Eeguo recupero per $TIPOLOGIE"
            logger -is -p user.notice "$nomescript: eseguo recupero per $TIPOLOGIE"         
-           python3 feed_iris_recuperoLampo.py
+           #python3 feed_iris_recuperoLampo.py
            if  [ $TEST == "Y" ]; then
+           python3 test_requests.py
                echo "Fine Test"
                break
            else 
